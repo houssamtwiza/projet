@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -27,9 +28,14 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        //
+        $formFields=$request->validated();
+     // dd($request->hasFile('image'));
+      $formFields['image']=$request->file('image')->store('product');
+    
+       dd($formFields);
+    Product::create($formFields);
     }
 
     /**
