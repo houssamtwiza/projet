@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -13,8 +14,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-       $products=Product::query()->paginate(1);
-       return view('product.index',compact('products'));
+       $products=Product::query()->paginate(2);
+       return view('users.admin.product.index',compact('products'));
     }
 
     /**
@@ -22,7 +23,13 @@ class ProductController extends Controller
      */
     public function create()
     {$product=new Product();
-        return view('product.create',compact('product'));
+        $categories=Category::all();
+        //donner des valeur par defaut
+        $product->fill([
+            'quantity'=>0 ,
+            'price'=>0       ]);
+        $isUpdate=false;
+        return view('users.admin.product.form',compact('product','isUpdate','categories'));
     }
 
     /**
@@ -31,11 +38,14 @@ class ProductController extends Controller
     public function store(ProductRequest $request)
     {
         $formFields=$request->validated();
-     // dd($request->hasFile('image'));
-      $formFields['image']=$request->file('image')->store('product');
+     if($request->hasFile('image')){
+        $formFields['image']=$request->file('image')->store('product','public');
+     }
+     
     
-       dd($formFields);
+     
     Product::create($formFields);
+    return to_route('products.index')->with('success','votre produit est bien cree');
     }
 
     /**
@@ -51,22 +61,31 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        //
+      
+        $isUpdate=true;
+        $categories=Category::all();
+        return view('users.admin.product.form',compact('product','isUpdate','categories'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
-    {
-        //
+    public function update(ProductRequest $request, Product $product)
+    { 
+
+        $formFields=$request->validated();
+        $product->fill($formFields)->save();
+        return to_route('products.index')->with('sucess','votre produit est bien modifie');  
+      // dd($product);
     }
 
     /**
      * Remove the specified resource from storage.
      */
+    //route model binding
     public function destroy(Product $product)
     {
-        //
+        $product->delete();
+        return to_route('products.index')->with('sucess','votre produit est bien suprime');    
     }
 }
